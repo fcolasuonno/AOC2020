@@ -2,6 +2,7 @@ package day01
 
 import isDebug
 import java.io.File
+import kotlin.system.measureTimeMillis
 
 fun main() {
     val name = if (isDebug()) "test.txt" else "input.txt"
@@ -9,33 +10,44 @@ fun main() {
     val dir = ::main::class.java.`package`.name
     val input = File("src/main/kotlin/$dir/$name").readLines()
     val parsed = parse(input)
-    part1(parsed)
-    part2(parsed)
+    System.err.println("Part 1 = ${
+        measureTimeMillis {
+            part1(parsed)
+        }
+    }ms")
+    System.err.println("Part 2 = ${
+        measureTimeMillis {
+            part2(parsed)
+        }
+    }ms")
 }
 
-fun parse(input: List<String>) = input.map(String::toInt).requireNoNulls()
+fun parse(input: List<String>) = input.map(String::toInt).sorted().requireNoNulls()
 
 fun part1(input: List<Int>) {
-    val filtered = input.filter { first ->
-        input.any { second -> second + first == 2020 && second != first }
+    for (i in input.indices) {
+        val first = input[i]
+        for (j in i until input.size) {
+            val second = input[j]
+            if (first + second > 2020) break
+            if (first + second == 2020) println("Part 1 = ${first * second}")
+        }
     }
-    val res = filtered.multiplyTogether()
-    println("Part 1 = $res")
 }
 
 fun part2(input: List<Int>) {
-    val filtered = input.filter { first ->
-        input.any { second ->
-            input.any { third ->
-                third + second + first == 2020 &&
-                        second != first &&
-                        third != first &&
-                        second != third
+    for (i in input.indices) {
+        val first = input[i]
+        for (j in i until input.size) {
+            val second = input[j]
+            if (first + second > 2020) break
+            for (k in j until input.size) {
+                val third = input[k]
+                if (first + second + third > 2020) break
+                if (first + second + third == 2020) println("Part 1 = ${first * second * third}")
             }
         }
     }
-    val res = filtered.multiplyTogether()
-    println("Part 2 = $res")
 }
 
 fun List<Int>.multiplyTogether(): Int = fold(1) { acc, i -> acc * i }
