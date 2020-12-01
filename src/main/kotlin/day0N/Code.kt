@@ -10,7 +10,7 @@ fun main() {
     val input = File("src/main/kotlin/$dir/$name").readLines()
     val parsed = parse(input)
     part1(parsed)
-//    part2(parsed)
+    part2(parsed)
 }
 
 fun parse(input: List<String>) = input.map {
