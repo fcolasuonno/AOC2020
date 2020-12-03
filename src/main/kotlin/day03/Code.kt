@@ -14,24 +14,25 @@ fun main() {
     part2(parsed)
 }
 
-fun parse(input: List<String>) = input.map {
-    it.map { it == '#' }
-}.requireNoNulls().withIndex()
+data class Grid(val input: List<String>) {
+    operator fun get(xy: Pair<Int, Int>) =
+            input.getOrNull(xy.second)?.let { row -> row.getOrNull(xy.first % row.length) }
+}
 
-fun part1(input: Iterable<IndexedValue<List<Boolean>>>) {
-    val res = input.count { (index, list) ->
-        list[index * 3 % list.size]
-    }
+fun parse(input: List<String>) = Grid(input)
+
+fun part1(input: Grid) {
+    val res = projectLine(delta = Pair(3, 1)).mapSequence { line -> input[line] }.count { it == '#' }
     println("Part 1 = $res")
 }
 
-fun part2(input: Iterable<IndexedValue<List<Boolean>>>) {
-    val res = input.filter { (index, _) -> index % 2 == 1 }.count { (index, list) ->
-        list[index / 2 % list.size]
-    } * listOf(1, 3, 5, 7).map { slope ->
-        input.count { (index, list) ->
-            list[index * slope % list.size]
-        }
+fun part2(input: Grid) {
+    val res = listOf(Pair(1, 1), Pair(3, 1), Pair(5, 1), Pair(7, 1), Pair(1, 2)).map { delta ->
+        projectLine(delta).mapSequence { line -> input[line] }.count { it == '#' }
     }.multiplyTogether()
     println("Part 2 = $res")
 }
+
+fun projectLine(delta: Pair<Int, Int>, start: Pair<Int, Int> = Pair(0, 0)) = generateSequence(start) { Pair(it.first + delta.first, it.second + delta.second) }
+
+fun <T, V> Sequence<T>.mapSequence(function: (T) -> V?) = map(function).takeWhile { it != null }
