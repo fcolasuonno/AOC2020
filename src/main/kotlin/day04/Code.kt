@@ -13,54 +13,51 @@ fun main() {
     part2(parsed)
 }
 
+data class Passport(val map: Map<String, String>) {
+    val byr by map
+    val iyr by map
+    val eyr by map
+    val hgt by map
+    val hcl by map
+    val ecl by map
+    val pid by map
+}
+
 private val lineStructure = """(...):(.+)""".toRegex()
 
-fun parse(input: List<String>): List<Map<String, String>> {
+fun parse(input: List<String>): List<Passport> {
     val passports = input.joinToString(separator = "\n").split("\n\n")
-    return passports.map { passwort ->
-        passwort.split("""\s""".toRegex()).mapNotNull {
+    return passports.map { passport ->
+        Passport(passport.split("""\s""".toRegex()).mapNotNull {
             lineStructure.matchEntire(it)?.destructured?.let {
                 val (key, value) = it.toList()
                 key to value
             }
-        }.toMap()
+        }.toMap())
     }
 }
 
 val required = setOf("byr", "iyr", "eyr", "hgt", "hcl", "ecl", "pid")
 
-fun part1(input: List<Map<String, String>>) {
-    val res = input.count { it.keys.containsAll(required) }
+fun part1(input: List<Passport>) {
+    val res = input.count { it.map.keys.containsAll(required) }
     println("Part 1 = $res")
 }
 
-fun part2(input: List<Map<String, String>>) {
+fun part2(input: List<Passport>) {
     val res = input.count { passport ->
-        passport.keys.containsAll(required) &&
-                passport.getValue("byr").let {
-                    """\d\d\d\d""".toRegex().matches(it) && it.toInt() in 1920..2002
-                } &&
-                passport.getValue("iyr").let {
-                    """\d\d\d\d""".toRegex().matches(it) && it.toInt() in 2010..2020
-                } &&
-                passport.getValue("eyr").let {
-                    """\d\d\d\d""".toRegex().matches(it) && it.toInt() in 2020..2030
-                } &&
-                passport.getValue("hgt").let {
-                    """(\d+)(cm|in)""".toRegex().matchEntire(it)?.destructured?.let {
-                        val (height, metric) = it.toList()
-                        height.toInt() in if (metric == "cm") 150..193 else 59..76
-                    } == true
-                } &&
-                passport.getValue("hcl").let {
-                    """#[0-9a-f]{6}""".toRegex().matches(it)
-                } &&
-                passport.getValue("ecl").let {
-                    it in setOf("amb", "blu", "brn", "gry", "grn", "hzl", "oth")
-                } &&
-                passport.getValue("pid").let {
-                    """\d{9}""".toRegex().matches(it)
-                }
+        passport.run {
+            map.keys.containsAll(required) &&
+                    """\d\d\d\d""".toRegex().matches(byr) && byr.toInt() in 1920..2002 &&
+                    """\d\d\d\d""".toRegex().matches(iyr) && iyr.toInt() in 2010..2020 &&
+                    """\d\d\d\d""".toRegex().matches(eyr) && eyr.toInt() in 2020..2030 &&
+                    """(\d+)(cm|in)""".toRegex().matchEntire(hgt)?.destructured?.let {
+                        it.component1().toInt() in if (it.component2() == "cm") 150..193 else 59..76
+                    } == true &&
+                    """#[0-9a-f]{6}""".toRegex().matches(hcl) &&
+                    ecl in setOf("amb", "blu", "brn", "gry", "grn", "hzl", "oth") &&
+                    """\d{9}""".toRegex().matches(pid)
+        }
     }
     println("Part 2 = $res")
 }
