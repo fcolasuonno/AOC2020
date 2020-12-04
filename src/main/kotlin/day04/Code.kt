@@ -16,9 +16,9 @@ fun main() {
 private val lineStructure = """(...):(.+)""".toRegex()
 
 fun parse(input: List<String>): List<Map<String, String>> {
-    val passports = input.joinToString(separator = " ") { if (it.isEmpty()) "|" else it }.split("|")
+    val passports = input.joinToString(separator = "\n").split("\n\n")
     return passports.map { passwort ->
-        passwort.split(" ").mapNotNull {
+        passwort.split("""\s""".toRegex()).mapNotNull {
             lineStructure.matchEntire(it)?.destructured?.let {
                 val (key, value) = it.toList()
                 key to value
