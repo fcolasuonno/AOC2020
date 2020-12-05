@@ -13,8 +13,13 @@ fun main() {
     part2(parsed)
 }
 
+private val lineStructure = """(\d+)-(\d+) (.): (.+)""".toRegex()
+
 fun parse(input: List<String>) = input.map {
-    it.toInt()
+    lineStructure.matchEntire(it)?.destructured?.let {
+        val (low, _, _, _) = it.toList()
+        low.toInt()
+    }
 }.requireNoNulls()
 
 fun part1(input: List<Int>) {
