@@ -2,6 +2,7 @@ package day05
 
 import isDebug
 import java.io.File
+import java.util.*
 
 fun main() {
     val name = if (isDebug()) "test.txt" else "input.txt"
@@ -14,18 +15,18 @@ fun main() {
 }
 
 fun parse(input: List<String>) = input.map { pass ->
-    pass.take(7).map { it == 'B' } to pass.takeLast(3).map { it == 'R' }
-}.requireNoNulls()
+    pass.map { it == 'B' || it == 'R' }.binToInt()
+}.toSortedSet()
 
-fun part1(input: List<Pair<List<Boolean>, List<Boolean>>>) {
-    val res = input.map { (row, col) -> row.binToInt() * 8 + col.binToInt() }.maxOrNull()
+fun part1(input: SortedSet<Int>) {
+    val res = input.last()
     println("Part 1 = $res")
 }
 
-fun part2(input: List<Pair<List<Boolean>, List<Boolean>>>) {
-    val res = input.map { (row, col) -> row.binToInt() * 8 + col.binToInt() }.sorted().let { ids ->
-        val range = requireNotNull(ids.minOrNull())..requireNotNull(ids.maxOrNull())
-        range.single { it !in ids }
+fun part2(input: SortedSet<Int>) {
+    val res = input.let { ids ->
+        val range = ids.first()..ids.last()
+        range.first { it !in ids }
     }
     println("Part 2 = $res")
 }
