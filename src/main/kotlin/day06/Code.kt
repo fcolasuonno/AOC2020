@@ -13,16 +13,18 @@ fun main() {
     part2(parsed)
 }
 
-fun parse(input: List<String>) = input.joinToString(separator = "\n").split("\n\n")
+fun parse(input: List<String>) = input.collect(String::isEmpty)
 
-fun part1(input: List<String>) {
-    val res = input.sumBy { it.filterNot { it == '\n' }.toSet().count() }
+fun Collection<String>.collect(splitOn: (String) -> Boolean = String::isEmpty) = fold(mutableListOf(mutableListOf<String>())) { acc, s ->
+    acc.apply { if (splitOn(s)) add(mutableListOf()) else last().add(s) }
+}
+
+fun part1(input: MutableList<MutableList<String>>) {
+    val res = input.sumBy { it.joinToString(separator = "").toSet().size }
     println("Part 1 = $res")
 }
 
-fun part2(input: List<String>) {
-    val res = input.sumBy {
-        it.split("\n").map { it.toSet() }.reduce { acc, set -> acc.intersect(set) }.size
-    }
+fun part2(input: MutableList<MutableList<String>>) {
+    val res = input.sumBy { it.map { it.toSet() }.reduce { acc, set -> acc.intersect(set) }.size }
     println("Part 2 = $res")
 }
