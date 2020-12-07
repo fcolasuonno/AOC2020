@@ -34,15 +34,12 @@ fun part1(input: Map<String, List<Bag>>) {
     val invert = input.flatMap { (type, bagList) -> bagList.map { it.type to type } }.groupBy { it.first }.mapValues { it.value.map { it.second }.toSet() }
     val check = mutableSetOf("shiny gold")
     val seen = mutableSetOf<String>()
-    var res = -1
     while (check.isNotEmpty()) {
-        val bag = check.first()
-        seen.add(bag)
-        check.remove(bag)
-        check.addAll(invert.getOrDefault(bag, emptySet()).filterNot { it in seen })
-        res++
+        seen.addAll(check)
+        check.addAll(check.flatMap { invert.getOrDefault(it, emptySet()) })
+        check.removeAll(seen)
     }
-    println("Part 1 = $res")
+    println("Part 1 = ${seen.size - 1}")
 }
 
 fun part2(input: Map<String, List<Bag>>) {
