@@ -31,14 +31,15 @@ fun parse(input: List<String>) = input.map {
 }.requireNoNulls().toMap()
 
 fun part1(input: Map<String, List<Bag>>) {
-    val start = mutableSetOf("shiny gold")
+    val invert = input.flatMap { (type, bagList) -> bagList.map { it.type to type } }.groupBy { it.first }.mapValues { it.value.map { it.second }.toSet() }
+    val check = mutableSetOf("shiny gold")
     val seen = mutableSetOf<String>()
     var res = -1
-    while (start.isNotEmpty()) {
-        val front = start.first()
-        seen.add(front)
-        start.remove(front)
-        start.addAll(input.entries.filter { it.value.any { it.type == front } }.map { it.key }.filterNot { it in seen })
+    while (check.isNotEmpty()) {
+        val bag = check.first()
+        seen.add(bag)
+        check.remove(bag)
+        check.addAll(invert.getOrDefault(bag, emptySet()).filterNot { it in seen })
         res++
     }
     println("Part 1 = $res")
