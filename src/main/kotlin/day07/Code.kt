@@ -1,0 +1,52 @@
+package day07
+
+import isDebug
+import java.io.File
+
+fun main() {
+    val name = if (isDebug()) "test.txt" else "input.txt"
+    System.err.println(name)
+    val dir = ::main::class.java.`package`.name
+    val input = File("src/main/kotlin/$dir/$name").readLines()
+    val parsed = parse(input)
+    part1(parsed)
+    part2(parsed)
+}
+
+private val lineStructure = """(.+) bags contain (no other bags|((\d+) (.+) bags?, )*((\d+) (.+) bags?)).""".toRegex()
+private val bagsStructure = """(\d+) (.+) bags?""".toRegex()
+
+data class Bag(val num: Int, val type: String)
+
+fun parse(input: List<String>) = input.map {
+    lineStructure.matchEntire(it)?.destructured?.let {
+        val (bagType, bags) = it.toList()
+        bagType to if (bags == "no other bags") emptyList() else bags.split(", ").map {
+            bagsStructure.matchEntire(it)?.destructured?.let {
+                val (num, type) = it.toList()
+                Bag(num.toInt(), type)
+            }
+        }.requireNoNulls()
+    }
+}.requireNoNulls().toMap()
+
+fun part1(input: Map<String, List<Bag>>) {
+    val start = mutableSetOf("shiny gold")
+    val seen = mutableSetOf<String>()
+    var res = -1
+    while (start.isNotEmpty()) {
+        val front = start.first()
+        seen.add(front)
+        start.remove(front)
+        start.addAll(input.entries.filter { it.value.any { it.type == front } }.map { it.key }.filterNot { it in seen })
+        res++
+    }
+    println("Part 1 = $res")
+}
+
+fun part2(input: Map<String, List<Bag>>) {
+    val res = generateSequence(listOf(Bag(1, "shiny gold"))) { list: List<Bag> ->
+        list.flatMap { bag -> input.getValue(bag.type).map { Bag(it.num * bag.num, it.type) } }.takeIf { it.isNotEmpty() }
+    }.sumBy { it.sumBy { it.num } } - 1
+    println("Part 2 = $res")
+}
