@@ -18,9 +18,10 @@ fun parse(input: List<String>) = input.flatMapIndexed { j, line ->
 }.requireNoNulls().toMap() to maxOf(input.first().count(), input.count())
 
 fun part1(input: Map<Pair<Int, Int>, Boolean>) {
+    val neighboursMap = input.mapValues { (k, _) -> k.neighbours.filter { it in input } }
     val res = generateSequence(input) { seats ->
         seats.mapValues { (k, occupied) ->
-            val neighboursCount = k.neighbours.count {
+            val neighboursCount = neighboursMap.getValue(k).count {
                 seats.getOrDefault(it, false)
             }
             when {
@@ -29,26 +30,27 @@ fun part1(input: Map<Pair<Int, Int>, Boolean>) {
                 else -> occupied
             }
         }
-    }.zipWithNext().takeWhile { (first, second) -> first != second }.last().second.count { it.value }
+    }.map { it.values.count { it } }.zipWithNext().takeWhile { (first, second) -> first != second }.last().second
     println("Part 1 = $res")
 }
 
 fun part2(input: Map<Pair<Int, Int>, Boolean>, size: Int) {
+    val neighboursMap = input.mapValues { (k, _) ->
+        (1..size).asSequence().let { range ->
+            listOfNotNull(
+                    range.map { (k.first - it) to k.second }.firstOrNull { it in input },
+                    range.map { (k.first - it) to (k.second - it) }.firstOrNull { it in input },
+                    range.map { (k.first - it) to (k.second + it) }.firstOrNull { it in input },
+                    range.map { (k.first + it) to k.second }.firstOrNull { it in input },
+                    range.map { (k.first + it) to (k.second - it) }.firstOrNull { it in input },
+                    range.map { (k.first + it) to (k.second + it) }.firstOrNull { it in input },
+                    range.map { (k.first) to (k.second - it) }.firstOrNull { it in input },
+                    range.map { (k.first) to (k.second + it) }.firstOrNull { it in input })
+        }
+    }
     val res = generateSequence(input) { seats ->
         seats.mapValues { (k, occupied) ->
-            val neighbours = (1..size).asSequence().let { range ->
-                listOfNotNull(
-                        range.map { (k.first - it) to k.second }.firstOrNull { it in seats },
-                        range.map { (k.first - it) to (k.second - it) }.firstOrNull { it in seats },
-                        range.map { (k.first - it) to (k.second + it) }.firstOrNull { it in seats },
-                        range.map { (k.first + it) to k.second }.firstOrNull { it in seats },
-                        range.map { (k.first + it) to (k.second - it) }.firstOrNull { it in seats },
-                        range.map { (k.first + it) to (k.second + it) }.firstOrNull { it in seats },
-                        range.map { (k.first) to (k.second - it) }.firstOrNull { it in seats },
-                        range.map { (k.first) to (k.second + it) }.firstOrNull { it in seats })
-            }
-
-            val neighboursCount = neighbours.count {
+            val neighboursCount = neighboursMap.getValue(k).count {
                 seats.getOrDefault(it, false)
             }
             when {
@@ -57,7 +59,7 @@ fun part2(input: Map<Pair<Int, Int>, Boolean>, size: Int) {
                 else -> occupied
             }
         }
-    }.zipWithNext().takeWhile { (first, second) -> first != second }.last().second.count { it.value }
+    }.map { it.values.count { it } }.zipWithNext().takeWhile { (first, second) -> first != second }.last().second
     println("Part 2 = $res")
 }
 
