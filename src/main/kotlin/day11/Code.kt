@@ -2,6 +2,7 @@ package day11
 
 import isDebug
 import java.io.File
+import kotlin.system.measureTimeMillis
 
 fun main() {
     val name = if (isDebug()) "test.txt" else "input.txt"
@@ -9,8 +10,12 @@ fun main() {
     val dir = ::main::class.java.`package`.name
     val input = File("src/main/kotlin/$dir/$name").readLines()
     val (parsed, size) = parse(input)
-    part1(parsed)
-    part2(parsed, size)
+    System.err.println(measureTimeMillis {
+        part1(parsed)
+    })
+    System.err.println(measureTimeMillis {
+        part2(parsed, size)
+    })
 }
 
 fun parse(input: List<String>) = input.flatMapIndexed { j, line ->
@@ -36,16 +41,16 @@ fun part1(input: Map<Pair<Int, Int>, Boolean>) {
 
 fun part2(input: Map<Pair<Int, Int>, Boolean>, size: Int) {
     val neighboursMap = input.mapValues { (k, _) ->
-        (1..size).asSequence().let { range ->
+        (1..size).asSequence().run {
             listOfNotNull(
-                    range.map { (k.first - it) to k.second }.firstOrNull { it in input },
-                    range.map { (k.first - it) to (k.second - it) }.firstOrNull { it in input },
-                    range.map { (k.first - it) to (k.second + it) }.firstOrNull { it in input },
-                    range.map { (k.first + it) to k.second }.firstOrNull { it in input },
-                    range.map { (k.first + it) to (k.second - it) }.firstOrNull { it in input },
-                    range.map { (k.first + it) to (k.second + it) }.firstOrNull { it in input },
-                    range.map { (k.first) to (k.second - it) }.firstOrNull { it in input },
-                    range.map { (k.first) to (k.second + it) }.firstOrNull { it in input })
+                    map { (k.first - it) to k.second }.firstOrNull { it in input },
+                    map { (k.first - it) to (k.second - it) }.firstOrNull { it in input },
+                    map { (k.first - it) to (k.second + it) }.firstOrNull { it in input },
+                    map { (k.first + it) to k.second }.firstOrNull { it in input },
+                    map { (k.first + it) to (k.second - it) }.firstOrNull { it in input },
+                    map { (k.first + it) to (k.second + it) }.firstOrNull { it in input },
+                    map { (k.first) to (k.second - it) }.firstOrNull { it in input },
+                    map { (k.first) to (k.second + it) }.firstOrNull { it in input })
         }
     }
     val res = generateSequence(input) { seats ->
@@ -64,6 +69,12 @@ fun part2(input: Map<Pair<Int, Int>, Boolean>, size: Int) {
 }
 
 val Pair<Int, Int>.neighbours: List<Pair<Int, Int>>
-    get() = ((first - 1)..(first + 1)).flatMap { i -> ((second - 1)..(second + 1)).map { j -> i to j } }.filter {
-        it != this
-    }
+    get() = listOf(
+            (first - 1) to (second - 1),
+            (first) to (second - 1),
+            (first + 1) to (second - 1),
+            (first - 1) to second,
+            (first + 1) to second,
+            (first - 1) to (second + 1),
+            (first) to (second + 1),
+            (first + 1) to (second + 1))
