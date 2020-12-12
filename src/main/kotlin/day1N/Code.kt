@@ -1,4 +1,4 @@
-package day0N
+package day1N
 
 import isDebug
 import java.io.File
@@ -23,13 +23,11 @@ fun parse(input: List<String>) = input.map {
 }.requireNoNulls()
 
 fun part1(input: List<Int>) {
-    val res = input.sumBy { it / 3 - 2 }
+    val res = input
     println("Part 1 = $res")
 }
 
 fun part2(input: List<Int>) {
-    val res = input.sumBy { mass ->
-        generateSequence(mass) { fuel -> (fuel / 3 - 2).takeIf { it > 0 } }.drop(1).sum()
-    }
+    val res = input.size
     println("Part 2 = $res")
 }

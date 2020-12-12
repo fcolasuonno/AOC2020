@@ -19,8 +19,10 @@ fun main() {
 }
 
 fun parse(input: List<String>) = input.flatMapIndexed { j, line ->
-    line.withIndex().filterNot { (_, c) -> c == '.' }.map { (i, c) -> (i to j) to (c == '#') }
-}.requireNoNulls().toMap() to maxOf(input.first().count(), input.count())
+    line.mapIndexedNotNull { i, c ->
+        (i to j).takeIf { c != '.' }?.to(c == '#')
+    }
+}.toMap() to maxOf(input.first().count(), input.count())
 
 fun part1(input: Map<Pair<Int, Int>, Boolean>) {
     val neighboursMap = input.mapValues { (k, _) -> k.neighbours.filter { it in input } }
@@ -35,7 +37,7 @@ fun part1(input: Map<Pair<Int, Int>, Boolean>) {
                 else -> occupied
             }
         }
-    }.map { it.values.count { it } }.zipWithNext().takeWhile { (first, second) -> first != second }.last().second
+    }.zipWithNext().first { (first, second) -> first == second }.second.values.count { it }
     println("Part 1 = $res")
 }
 
@@ -64,17 +66,11 @@ fun part2(input: Map<Pair<Int, Int>, Boolean>, size: Int) {
                 else -> occupied
             }
         }
-    }.map { it.values.count { it } }.zipWithNext().takeWhile { (first, second) -> first != second }.last().second
+    }.zipWithNext().first { (first, second) -> first == second }.second.values.count { it }
     println("Part 2 = $res")
 }
 
 val Pair<Int, Int>.neighbours: List<Pair<Int, Int>>
-    get() = listOf(
-            (first - 1) to (second - 1),
-            (first) to (second - 1),
-            (first + 1) to (second - 1),
-            (first - 1) to second,
-            (first + 1) to second,
-            (first - 1) to (second + 1),
-            (first) to (second + 1),
-            (first + 1) to (second + 1))
+    get() = listOf((first - 1) to (second - 1), (first) to (second - 1), (first + 1) to (second - 1),
+            (first - 1) to second, (first + 1) to second,
+            (first - 1) to (second + 1), (first) to (second + 1), (first + 1) to (second + 1))
