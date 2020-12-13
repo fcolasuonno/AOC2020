@@ -63,16 +63,6 @@ fun Pair<Int, Int>.move(dir: Char, amount: Int): Pair<Int, Int> = when (dir) {
     else -> throw IllegalArgumentException()
 }
 
-fun Char.left() = when (this) {
-    'N' -> 'W'
-    'E' -> 'N'
-    'S' -> 'E'
-    else -> 'S'
-}
+fun Char.left() = "NWSE".let { it[(it.indexOf(this) + 1) % 4] }
 
-fun Char.right() = when (this) {
-    'N' -> 'E'
-    'E' -> 'S'
-    'S' -> 'W'
-    else -> 'N'
-}
+fun Char.right() = "NESW".let { it[(it.indexOf(this) + 1) % 4] }
