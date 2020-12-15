@@ -10,39 +10,18 @@ fun main() {
     val dir = ::main::class.java.`package`.name
     val input = File("src/main/kotlin/$dir/$name").readLines()
     val parsed = parse(input)
-    part1(parsed)
+    println("Part 1 = ${part(parsed, 2020)}")
     System.err.println(measureTimeMillis {
-        part2(parsed)
+        println("Part 2 = ${part(parsed, 30000000)}")
     })
 }
-
 
 fun parse(input: List<String>) = input.single().split(",").map {
     it.toInt()
 }.requireNoNulls()
 
-fun part1(input: List<Int>) {
-    val seen = mutableMapOf<Int, Int>()
-    input.forEachIndexed { index, i ->
-        seen[i] = index + 1
+fun part(input: List<Int>, num: Int) = input.mapIndexed { index, i -> i to index + 1 }.toMap().toMutableMap().run {
+    generateSequence(input.size + 1) { it + 1 }.take(num - input.size).fold(input.last()) { last, turn ->
+        put(last, turn - 1)?.let { previousTurn -> turn - 1 - previousTurn } ?: 0
     }
-    val res = generateSequence(input.size + 1) { it + 1 }.take(2020 - input.size).fold(input.last()) { last, turn ->
-        (seen[last]?.let { turn - 1 - it } ?: 0).also {
-            seen[last] = turn - 1
-        }
-    }
-    println("Part 1 = $res")
-}
-
-fun part2(input: List<Int>) {
-    val seen = mutableMapOf<Int, Int>()
-    input.forEachIndexed { index, i ->
-        seen[i] = index + 1
-    }
-    val res = generateSequence(input.size + 1) { it + 1 }.take(30000000 - input.size).fold(input.last()) { last, turn ->
-        (seen[last]?.let { turn - 1 - it } ?: 0).also {
-            seen[last] = turn - 1
-        }
-    }
-    println("Part 2 = $res")
 }
