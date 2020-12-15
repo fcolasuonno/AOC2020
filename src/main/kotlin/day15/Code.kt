@@ -2,7 +2,6 @@ package day15
 
 import isDebug
 import java.io.File
-import java.util.*
 import kotlin.system.measureTimeMillis
 
 fun main() {
@@ -23,29 +22,27 @@ fun parse(input: List<String>) = input.single().split(",").map {
 }.requireNoNulls()
 
 fun part1(input: List<Int>) {
-    val seen = mutableMapOf<Int, Deque<Int>>().withDefault { LinkedList() }
+    val seen = mutableMapOf<Int, Int>()
     input.forEachIndexed { index, i ->
-        seen.getOrPut(i).push(index + 1)
+        seen[i] = index + 1
     }
     val res = generateSequence(input.size + 1) { it + 1 }.take(2020 - input.size).fold(input.last()) { last, turn ->
-        (seen.getValue(last).takeIf { it.size > 1 }?.let { deque -> deque.first - deque.removeLast() } ?: 0).also {
-            seen.getOrPut(it).push(turn)
+        (seen[last]?.let { turn - 1 - it } ?: 0).also {
+            seen[last] = turn - 1
         }
     }
     println("Part 1 = $res")
 }
 
 fun part2(input: List<Int>) {
-    val seen = mutableMapOf<Int, Deque<Int>>().withDefault { LinkedList() }
+    val seen = mutableMapOf<Int, Int>()
     input.forEachIndexed { index, i ->
-        seen.getOrPut(i).push(index + 1)
+        seen[i] = index + 1
     }
     val res = generateSequence(input.size + 1) { it + 1 }.take(30000000 - input.size).fold(input.last()) { last, turn ->
-        (seen.getValue(last).takeIf { it.size > 1 }?.let { deque -> deque.first - deque.removeLast() } ?: 0).also {
-            seen.getOrPut(it).push(turn)
+        (seen[last]?.let { turn - 1 - it } ?: 0).also {
+            seen[last] = turn - 1
         }
     }
     println("Part 2 = $res")
 }
-
-fun <K, V> MutableMap<K, V>.getOrPut(key: K) = getValue(key).also { putIfAbsent(key, it) }
