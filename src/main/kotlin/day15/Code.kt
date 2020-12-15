@@ -27,12 +27,11 @@ fun part1(input: List<Int>) {
     input.forEachIndexed { index, i ->
         seen.getOrPut(i).push(index + 1)
     }
-    var last = input.last()
-    val res = generateSequence(input.size + 1) { it + 1 }.map { num ->
-        last = seen.getValue(last).takeIf { it.size > 1 }?.let { deque -> deque.first - deque.removeLast() } ?: 0
-        seen.getOrPut(last).push(num)
-        last
-    }.elementAt(2020 - input.size - 1)
+    val res = generateSequence(input.size + 1) { it + 1 }.take(2020 - input.size).fold(input.last()) { last, turn ->
+        (seen.getValue(last).takeIf { it.size > 1 }?.let { deque -> deque.first - deque.removeLast() } ?: 0).also {
+            seen.getOrPut(it).push(turn)
+        }
+    }
     println("Part 1 = $res")
 }
 
@@ -41,12 +40,11 @@ fun part2(input: List<Int>) {
     input.forEachIndexed { index, i ->
         seen.getOrPut(i).push(index + 1)
     }
-    var last = input.last()
-    val res = generateSequence(input.size + 1) { it + 1 }.map { num ->
-        last = seen.getValue(last).takeIf { it.size > 1 }?.let { deque -> deque.first - deque.removeLast() } ?: 0
-        seen.getOrPut(last).push(num)
-        last
-    }.elementAt(30000000 - input.size - 1)
+    val res = generateSequence(input.size + 1) { it + 1 }.take(30000000 - input.size).fold(input.last()) { last, turn ->
+        (seen.getValue(last).takeIf { it.size > 1 }?.let { deque -> deque.first - deque.removeLast() } ?: 0).also {
+            seen.getOrPut(it).push(turn)
+        }
+    }
     println("Part 2 = $res")
 }
 
