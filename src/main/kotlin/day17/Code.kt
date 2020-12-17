@@ -27,29 +27,25 @@ fun parse(input: List<String>) = input.flatMapIndexed { y, s ->
 }.toSet()
 
 fun part1(input: Set<Triple<Int, Int, Int>>) {
-    var start = input
-    fun Triple<Int, Int, Int>.neighboursCount() = neighbours.count { it in start }
-    repeat(6) {
-        start = mutableSetOf<Triple<Int, Int, Int>>().apply {
-            start.filterTo(this) { each -> each.neighboursCount().let { it == 2 || it == 3 } }
+    val res = generateSequence(input) { start ->
+        mutableSetOf<Triple<Int, Int, Int>>().apply {
+            start.filterTo(this) { each -> each.neighbours.count { it in start }.let { it == 2 || it == 3 } }
             start.flatMapTo(mutableSetOf()) { it.neighbours }
-                .filterTo(this) { each -> each !in start && each.neighboursCount() == 3 }
+                .filterTo(this) { each -> each !in start && each.neighbours.count { it in start } == 3 }
         }
-    }
-    println("Part 1 = ${start.size}")
+    }.elementAt(6).size
+    println("Part 1 = $res")
 }
 
 fun part2(input: Set<Triple<Int, Int, Int>>) {
-    var start = input.mapTo(mutableSetOf()) { Quadruple(it.first, it.second, it.third, 0) }
-    fun Quadruple.neighboursCount() = neighbours.count { it in start }
-    repeat(6) {
-        start = mutableSetOf<Quadruple>().apply {
-            start.filterTo(this) { each -> each.neighboursCount().let { it == 2 || it == 3 } }
+    val res = generateSequence(input.mapTo(mutableSetOf()) { Quadruple(it.first, it.second, it.third, 0) }) { start ->
+        mutableSetOf<Quadruple>().apply {
+            start.filterTo(this) { each -> each.neighbours.count { it in start }.let { it == 2 || it == 3 } }
             start.flatMapTo(mutableSetOf()) { it.neighbours }
-                .filterTo(this) { each -> each !in start && each.neighboursCount() == 3 }
+                .filterTo(this) { each -> each !in start && each.neighbours.count { it in start } == 3 }
         }
-    }
-    println("Part 2 = ${start.size}")
+    }.elementAt(6).size
+    println("Part 2 = $res")
 }
 
 data class Quadruple(
