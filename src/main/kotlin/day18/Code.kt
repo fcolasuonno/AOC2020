@@ -13,7 +13,7 @@ fun main() {
     part2(parsed)
 }
 
-fun parse(input: List<String>) = input
+fun parse(input: List<String>) = input.map { it.replace(" ", "") }
 
 fun part1(input: List<String>) {
     val res = input.sumOf { it.solve1(0).first }
@@ -21,16 +21,14 @@ fun part1(input: List<String>) {
 }
 
 fun String.solve1(start: Int): Pair<Long, Int> {
-    var (acc, current) = if (this[start] == '(') solve1(start + 1) else this[start].asLong() to (start + 2)
+    var (acc, current) = if (this[start] == '(') solve1(start + 1) else this[start].asLong() to (start + 1)
     do {
-        val op: ((Long, Long) -> Long) = if (this[current] == '+') Long::plus else Long::times
-        current += 2
-        val next = if (this[current] == '(') solve1(current + 1) else this[current].asLong() to current + 2
+        val op: ((Long, Long) -> Long) = if (this[current++] == '+') Long::plus else Long::times
+        val next = if (this[current] == '(') solve1(current + 1) else this[current].asLong() to current + 1
         acc = op(acc, next.first)
         current = next.second
-        if (getOrNull(current - 1) == ')') current++
-    } while (getOrNull(next.second - 1) == ' ')
-    return acc to current
+    } while (current < length && get(current) != ')')
+    return acc to (current + 1)
 }
 
 private fun Char.asLong() = (this - '0').toLong()
@@ -41,16 +39,14 @@ fun part2(input: List<String>) {
 }
 
 fun String.solve2(start: Int): Pair<Long, Int> {
-    var (acc, current) = if (this[start] == '(') solve2(start + 1) else this[start].asLong() to (start + 2)
+    var (acc, current) = if (this[start] == '(') solve2(start + 1) else this[start].asLong() to (start + 1)
     val mult = mutableListOf<Long>()
     do {
-        val op: ((Long, Long) -> Long) = if (this[current] == '+') Long::plus else { a, b -> b.also { mult.add(a) } }
-        current += 2
-        val next = if (this[current] == '(') solve2(current + 1) else this[current].asLong() to current + 2
+        val op: ((Long, Long) -> Long) = if (this[current++] == '+') Long::plus else { a, b -> b.also { mult.add(a) } }
+        val next = if (this[current] == '(') solve2(current + 1) else this[current].asLong() to current + 1
         acc = op(acc, next.first)
         current = next.second
-        if (getOrNull(current - 1) == ')') current++
-    } while (getOrNull(next.second - 1) == ' ')
+    } while (current < length && get(current) != ')')
     acc = mult.fold(acc) { a, l -> a * l }
-    return acc to current
+    return acc to (current + 1)
 }
