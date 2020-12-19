@@ -13,7 +13,7 @@ fun main() {
     part2(parsed)
 }
 
-private val lineStructure = """(\d+): (([0-9 |]+)|"([ab])")""".toRegex()
+private val lineStructure = """(\d+): (?:([0-9 |]+)|"([ab])")""".toRegex()
 
 sealed class Rule {
     abstract fun consumeMatch(rules: Map<Int, Rule>, string: String?): String?
@@ -32,23 +32,17 @@ sealed class Rule {
     }
 
     data class Nested(val startRule: Int, val endRule: Int) : Rule() {
-        override fun consumeMatch(rules: Map<Int, Rule>, string: String?): String? {
-            var acc = string
-            acc = acc?.let { rules.getValue(startRule).consumeMatch(rules, it) }
-            acc = acc?.let {
-                rules.getValue(endRule).consumeMatch(rules, it) ?: consumeMatch(
-                    rules,
-                    it
-                )?.let { rules.getValue(endRule).consumeMatch(rules, it) }
+        override fun consumeMatch(rules: Map<Int, Rule>, string: String?): String? =
+            rules.getValue(startRule).consumeMatch(rules, string)?.let {
+                val end = rules.getValue(endRule)
+                end.consumeMatch(rules, it) ?: end.consumeMatch(rules, consumeMatch(rules, it))
             }
-            return acc
-        }
     }
 }
 
 fun parse(input: List<String>) = input.mapNotNull {
     lineStructure.matchEntire(it)?.destructured?.let {
-        val (ruleNum, _, composed, terminal) = it.toList()
+        val (ruleNum, composed, terminal) = it.toList()
         ruleNum.toInt() to when {
             terminal.isNotEmpty() -> Rule.Terminal(terminal.single())
             else -> Rule.Composed(composed.split(" | ").map {
@@ -75,5 +69,5 @@ fun part2(input: Pair<Map<Int, Rule>, List<String>>) {
             r11.consumeMatch(rules, it) == ""
         }
     }
-    println("Part 1 = $res")
+    println("Part 2 = $res")
 }
