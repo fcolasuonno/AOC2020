@@ -1,4 +1,4 @@
-package day1N
+package day2N
 
 import isDebug
 import java.io.File

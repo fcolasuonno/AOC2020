@@ -54,38 +54,29 @@ data class Tile(val tile: Long, val data: List<List<Boolean>>, val neightbours: 
     val left = neightbours[3]
 
     fun oriented(rTop: Long?, rLeft: Long?) =
-        if (rTop == this.top && rLeft == this.left) this
-        else if (rTop == this.top && rLeft == this.right) Tile(tile, data.flipH(), listOf(top, left, bottom, right))
-        else if (rTop == this.bottom && rLeft == this.left) Tile(tile, data.flipV(), listOf(bottom, right, top, left))
-        else if (rTop == this.right && rLeft == this.bottom) Tile(
-            tile,
-            data.rotateCW().flipV(),
-            listOf(right, top, left, bottom)
-        )
-        else if (rTop == this.left && rLeft == this.top) Tile(
-            tile,
-            data.rotateCW().flipH(),
-            listOf(left, bottom, right, top)
-        )
-        else if (rTop == this.left && rLeft != this.top) Tile(
-            tile,
-            data.rotateCW(),
-            listOf(left, top, right, bottom)
-        )
-        else if (rTop != this.left && rLeft == this.top) Tile(
-            tile,
-            data.rotateCW().rotateCW().rotateCW(),
-            listOf(right, bottom, left, top)
-        )
-        else if (rTop != this.left && rLeft != this.top) Tile(
-            tile,
-            data.rotateCW().rotateCW(),
-            listOf(bottom, left, top, right)
-        )
-        else TODO("Not yet implemented TOP:$top , LEFT:$left -> RTOP:$rTop, RLEFT:$rLeft")
+        when {
+            rTop == this.top && rLeft == this.left -> this
+            rTop == this.top && rLeft == this.right -> flipH()
+            rTop == this.bottom && rLeft == this.left -> flipV()
+            rTop == this.right && rLeft == this.bottom -> rotCW().flipV()
+            rTop == this.left && rLeft == this.top -> rotCW().flipH()
+            rTop == this.left && rLeft != this.top -> rotCW()
+            rTop != this.left && rLeft == this.top -> rotCW().rotCW().rotCW()
+            rTop != this.left && rLeft != this.top -> rotCW().rotCW()
+            else -> TODO("Not yet implemented TOP:$top , LEFT:$left -> RTOP:$rTop, RLEFT:$rLeft")
+        }
+
+    private fun flipH() = copy(data = data.flipH(), neightbours = neightbours.flipH())
+    private fun flipV() = copy(data = data.flipV(), neightbours = neightbours.flipV())
+    private fun rotCW() = copy(data = data.rotateCW(), neightbours = neightbours.rotateCW())
 
     //    override fun toString() = data.joinToString("\n") { it.joinToString("") { if (it) "#" else "." } }
     override fun toString() = "$tile: T=$top, R=$right, B=$bottom, L=$left"
+
+    private fun List<Long?>.rotateCW() = mapIndexed { index, _ -> get((index + size - 1) % size) }
+    private fun List<Long?>.flipH() = listOf(get(0), get(3), get(2), get(1))
+    private fun List<Long?>.flipV() = listOf(get(2), get(1), get(0), get(3))
+
 }
 
 fun part2(input: Map<Long, List<List<Boolean>>>) {
@@ -121,12 +112,11 @@ fun part2(input: Map<Long, List<List<Boolean>>>) {
             arranged[y / 8][x / 8]!!.data[y % 8 + 1][x % 8 + 1]
         }
     }
-    val monster =
-        "                  # \n#    ##    ##    ###\n #  #  #  #  #  #   ".split("\n").flatMapIndexed { index, s ->
-            s.withIndex().filter { it.value == '#' }.map {
-                it.index to index
-            }
-        }
+    val monster = listOf(
+        "                  # ",
+        "#    ##    ##    ###",
+        " #  #  #  #  #  #   "
+    ).flatMapIndexed { y, s -> s.indices.filter { s[it] == '#' }.map { x -> x to y } }
     val res = listOf(
         grid,
         grid.rotateCW(),
@@ -137,14 +127,11 @@ fun part2(input: Map<Long, List<List<Boolean>>>) {
         grid.rotateCW().flipV(),
         grid.rotateCW().flipH(),
     ).map { possibleGrid ->
-        var count = 0
-        for (x in 0..(grid.size - 20)) {
-            for (y in 0..(grid.size - 3)) {
-                if (monster.map { it.copy(it.first + x, it.second + y) }
-                        .all { possibleGrid[it.second][it.first] }) count++
+        (0..(grid.size - 20)).sumBy { x ->
+            (0..(grid.size - 3)).count { y ->
+                monster.all { possibleGrid[it.second + y][it.first + x] }
             }
         }
-        count
     }.maxOrNull()?.let { grid.sumBy { it.count { it } } - it * monster.count() }
     println("Part 2 = $res")
 }
