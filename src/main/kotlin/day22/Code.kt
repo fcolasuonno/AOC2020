@@ -14,68 +14,52 @@ fun main() {
 }
 
 fun parse(input: List<String>) = input.indexOf("").let {
-    input.subList(1, it).map { it.toInt() } to input.subList(it + 2, input.size).map { it.toInt() }
+    input.subList(1, it).map(String::toInt) to input.subList(it + 2, input.size).map(String::toInt)
 }
 
 fun part1(input: Pair<List<Int>, List<Int>>) {
-    val game = generateSequence(input) { (p1, p2) ->
-        if (p1.isEmpty() || p2.isEmpty()) null else {
-            val firsts = p1.first() to p2.first()
-            p1.drop(1).let { if (firsts.first > firsts.second) (it + firsts.first + firsts.second) else it } to
-                    p2.drop(1).let { if (firsts.second > firsts.first) (it + firsts.second + firsts.first) else it }
-        }
-    }
-    println(
-        "Part 1 = ${
-            game.last().let { if (it.first.isNotEmpty()) it.first else it.second }.let { cards ->
-                cards.foldIndexed(0L) { index: Int, acc: Long, i: Int -> acc + i.toLong() * (cards.size - index) }
-            }
-        }"
-    )
-}
-
-fun part2(input: Pair<List<Int>, List<Int>>) {
-    val seen: MutableMap<String, Boolean> = mutableMapOf()
-    val game = winner(input, 1, seen).let { if (it.first.isNotEmpty()) it.first else it.second }.let { cards ->
-        cards.foldIndexed(0L) { index: Int, acc: Long, i: Int -> acc + i.toLong() * (cards.size - index) }
-    }
-    println("Part 2 = $game")
-}
-
-private fun winner(
-    input: Pair<List<Int>, List<Int>>,
-    i: Int,
-    seen: MutableMap<String, Boolean>
-): Pair<List<Int>, List<Int>> {
-    val seenP1 = mutableSetOf<String>()
-    val seenP2 = mutableSetOf<String>()
-    return generateSequence(input) { (p1, p2) ->
-        val p1String = p1.toString()
-        val p2String = p2.toString()
-        when {
-            p1.isEmpty() || p2.isEmpty() -> null
-            p1String in seenP1 || p2String in seenP2 -> System.err.println("found").let { null }
-            else -> {
-                seenP1.add(p1String)
-                seenP2.add(p2String)
-                val firsts = p1.first() to p2.first()
-                val p1Hand = p1.drop(1)
-                val p2Hand = p2.drop(1)
-                //            System.err.println("Game $i $p1Hand $p2Hand")
-                val p1Wins = if (p1Hand.size >= firsts.first && p2Hand.size >= firsts.second) {
-                    if (i > 3) true else {
-                        val subGameString = (p1Hand to p2Hand).toString()
-                        seen[subGameString] ?: winner(p1Hand to p2Hand, i + 1, seen).first.isNotEmpty().also {
-                            seen[subGameString] = it
-                            seen[(p2Hand to p1Hand).toString()] = !it
-                        }
-                    }
-                } else {
-                    firsts.first > firsts.second
-                }
-                p1Hand.let { if (p1Wins) (it + firsts.first + firsts.second) else it } to
-                        p2Hand.let { if (!p1Wins) (it + firsts.second + firsts.first) else it }
+    val winner = generateSequence(input) { (p1, p2) ->
+        p1.firstOrNull()?.let { p1Hand ->
+            p2.firstOrNull()?.let { p2Hand ->
+                val p1Cards = p1.drop(1)
+                val p2Cards = p2.drop(1)
+                val p1Wins = p1Hand > p2Hand
+                Pair(
+                    if (p1Wins) (p1Cards + p1Hand + p2Hand) else p1Cards,
+                    if (!p1Wins) (p2Cards + p2Hand + p1Hand) else p2Cards
+                )
             }
         }
     }.last()
+    println("Part 1 = ${winner.score}")
 }
+
+fun part2(input: Pair<List<Int>, List<Int>>) {
+    val res = winner(input).score
+    println("Part 2 = $res")
+}
+
+private val Pair<List<Int>, List<Int>>.score: Int
+    get() = (first.takeIf { it.isNotEmpty() } ?: second).reversed()
+        .reduceIndexed { index, acc, i -> acc + i * (index + 1) }
+
+private fun winner(input: Pair<List<Int>, List<Int>>): Pair<List<Int>, List<Int>> =
+    Pair(mutableSetOf<List<Int>>(), mutableSetOf<List<Int>>()).run {
+        generateSequence(input) { (p1, p2) ->
+            p1.takeIf { first.add(it) }?.firstOrNull()?.let { p1Hand ->
+                p2.takeIf { second.add(it) }?.firstOrNull()?.let { p2Hand ->
+                    val p1Cards = p1.drop(1)
+                    val p2Cards = p2.drop(1)
+                    val p1Wins = p1Cards.takeIf { it.size >= p1Hand }?.take(p1Hand)?.let { p1Copy ->
+                        p2Cards.takeIf { it.size >= p2Hand }?.take(p2Hand)?.let { p2Copy ->
+                            winner(p1Copy to p2Copy).first.isNotEmpty()
+                        }
+                    } ?: (p1Hand > p2Hand)
+                    Pair(
+                        if (p1Wins) (p1Cards + p1Hand + p2Hand) else p1Cards,
+                        if (!p1Wins) (p2Cards + p2Hand + p1Hand) else p2Cards
+                    )
+                }
+            }
+        }.last()
+    }
