@@ -13,33 +13,52 @@ fun main() {
     part2(parsed)
 }
 
-fun parse(input: List<String>) = input.single().map {
-    it - '0'
-}
+fun parse(input: List<String>) = input.single().map { it - '0' }
 
 fun part1(input: List<Int>) {
-    val seq = generateSequence(input to 0) { (cups, index) ->
-        val nextIndices = listOf((index + 1) % cups.size, (index + 2) % cups.size, (index + 3) % cups.size)
-        val pick = cups.slice(nextIndices)
-        var destination = cups[index]
+    val cups = (input + input.first()).zipWithNext().toMap().toMutableMap()
+    val res = generateSequence(input.first()) { index ->
+        val p1 = cups[index]!!
+        val p2 = cups[p1]!!
+        val p3 = cups[p2]!!
+        val next = cups[p3]!!
+        var destination = index
         do {
             destination--
             if (destination == 0) destination = 9
-        } while (destination in pick)
-        val newIndices = cups.indices.toMutableList().apply {
-            removeAll(nextIndices)
-            addAll((indexOf(cups.indexOf(destination)) + 1), nextIndices)
-        }.run {
-            val currentIndexDiff = indexOf(index) - index
-            (0..8).map { i -> get((i + currentIndexDiff) % size) }
-        }
-        cups.slice(newIndices) to ((index + 1) % cups.size)
-    }.take(100 + 1).last().first
-    val res = (seq + seq).let { it.dropWhile { it != 1 }.drop(1).take(8).joinToString("") }
+        } while (destination == p1 || destination == p2 || destination == p3)
+        cups[index] = next
+        cups[p3] = cups[destination]!!
+        cups[destination] = p1
+        next
+    }.take(100 + 1).last().let {
+        generateSequence(cups[1]) { cups[it] }.take(8).joinToString("")
+    }
     println("Part 1 = $res")
 }
 
 fun part2(input: List<Int>) {
-    val res = input.size
+    val max = 1000000
+    val cups = (input + (10..max) + input.first()).zipWithNext().toMap().toMutableMap()
+    val res = generateSequence(input.first()) { index ->
+        val p1 = cups[index]!!
+        val p2 = cups[p1]!!
+        val p3 = cups[p2]!!
+        val next = cups[p3]!!
+        var destination = index
+        do {
+            destination--
+            if (destination == 0) destination = max
+        } while (destination == p1 || destination == p2 || destination == p3)
+        cups[index] = next
+        cups[p3] = cups[destination]!!
+        cups[destination] = p1
+        next
+    }.take(10000000 + 1).last().let {
+        cups.let {
+            val first = it.getValue(1)
+            first.toLong() * it.getValue(first)
+        }
+    }
     println("Part 2 = $res")
 }
